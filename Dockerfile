@@ -7,7 +7,7 @@
 # Building Dockerfile
 # docker image build -t squidtor .
 #
-# Running the container don't forget if you want to add features like hostname detection to use -h option
+# Running the container: if you want to add features like hostname detection don't forget to use -h option
 # docker run -d -h squidtor -p 3400:3400 --name --rm squidtor squidtor:latest
 #
 # Warning: if you want to bound the service to a particular IP for security reasons use -p [ipaddress]:3400:3400
