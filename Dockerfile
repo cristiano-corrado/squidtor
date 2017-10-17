@@ -7,7 +7,7 @@
 # Building Dockerfile
 # docker image build -t squidtor .
 #
-# Running the container: if you want to add features like hostname detection don't forget to use -h option
+# Running the container: if you want to add features like hostname detection don't forget doto use -h option
 # docker run -d -h squidtor -p 3400:3400 --name --rm squidtor squidtor:latest
 #
 # Warning: if you want to bound the service to a particular IP for security reasons use -p [ipaddress]:3400:3400
@@ -50,7 +50,8 @@ RUN chown debian-tor:debian-tor -R /var/cache/tor/ /var/run/tor
 COPY delegated-x64 /opt/dgroot/delegated
 
 # Making binaries executable
-RUN chmod +x /root/anonymize /root/checksize /opt/dgroot/delegated
+# 700 Thanks to inquisb
+RUN chmod 700 /root/anonymize /root/checksize /opt/dgroot/delegated
 
 # Entry Command when lunching squidTor
 CMD /root/anonymize start
