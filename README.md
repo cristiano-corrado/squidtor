@@ -1,14 +1,14 @@
-This build is provided with multiple features and possibilities to anonymize the traffic of your network/computer.
-It runs 8 instances of **tor** connected to 8 instances of **delegated** socks to proxy converter which are controlled by **squid** in round-robin.
+squidtor allows you to anonymize your network traffic.
+It is a docker image that runs eight instances of [Tor](https://www.torproject.org) connected to eight instances of [DeleGate](http://delegate.org/delegate/) socks to proxy converter which are managed by [Squid](http://www.squid-cache.org) in round-robin.
 
-This configuration allows to split and use multiple tor nodes at the same time in order to load faster the content provided  for browsing.
+This configuration allows to balance and use multiple Tor nodes at the same time in order to load faster content while browsing the web.
 The caching levels of the applications allow a faster download of the pages.
-The architecture is monitored by **monit** which automatic maintenance and repair and can execute meaningful causal actions in error situations.
-Each instance is actively monitored and restarted in case of failure of the service.
+The architecture is monitored by [monit](https://mmonit.com/monit/) which monitors, maintains and repairs the other instances of the infrastructure.
 
-# What does it more then others
+# What does it do more then other similar projects
 
-It is completely self-healing build, should one of the services crash or go down it will be brought up back to the running state. it is granualr in control
+* It is a self-healing build, should one of the services crash or go down it will be brought up back to the running state.
+* It is granular in control
 of the single instances. Moreover if you want to chain the images across multiple areas or geolocation the automatic hostname build will give maximum control
 on the deployment. Usually I use squid across multiple squidtor instances deployed and configure the smtp server from monit to continuosly monitor and be updated
 on the status of each single node.
@@ -187,8 +187,8 @@ $PATH in /opt/dgroot/bin/ - command line to link 1-to-1 to respective tor node. 
 
 ## Monit
 
-*Config File*: `/etc/monit/monitrc`
-*Control Files*: `/etc/monit/conf-enabled`
+* Configuration file: `/etc/monit/monitrc`
+* Control files: `/etc/monit/conf-enabled`
 
 Here lies the monitoring of the above infrastructure as if a node dies, would be tedious the debugging process to find the dead node and start it up again.
 It also monitors the size of the caching directories for squid and delegate and if > 100mb removes them and recreates and restart the processes.
