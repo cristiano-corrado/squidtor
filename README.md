@@ -1,4 +1,4 @@
-This build  is provided with multiple features and possibilities to anonymize the traffic of your network/computer.
+This build is provided with multiple features and possibilities to anonymize the traffic of your network/computer.
 It runs 8 instances of **tor** connected to 8 instances of **delegated** socks to proxy converter which are controlled by **squid** in round-robin.
 
 This configuration allows to split and use multiple tor nodes at the same time in order to load faster the content provided  for browsing.
@@ -63,19 +63,16 @@ The start/stop script file controls each and every instance of the whole archite
 
 # Obtain and run the image
 
-`$ git clone https://github.com/urand0m/squditor.git`
-
-`$ cd squidtor`
-
-`$ docker image build -t squidtor .`
-
-`docker run -d -h squidtor -p 3400:3400 --rm --name squidtor urand0m/squidtor:latest `
-
+```
+git clone https://github.com/urand0m/squditor.git
+cd squidtor
+docker image build -t squidtor .
+docker run -d -h squidtor -p 3400:3400 --rm --name squidtor urand0m/squidtor:latest
+```
 
 # Systemd
 
-If you wish to autostart on boot and start/stop using systemd you can copy following configuration and place it in `/etc/systemd/system/squidtor.docker.service` :
-
+If you wish to autostart on boot and start/stop using systemd you can copy following configuration and place it in `/etc/systemd/system/squidtor.docker.service`:
 ```
 [Unit]
 Description=Squid Tor Delegate Platform for anonimity Container
@@ -92,19 +89,21 @@ ExecStop=/usr/bin/docker stop -t 2 squidtor
 WantedBy=multi-user.target
 ```
 
-`$ systemctl daemon-reload`
-`$ systemctl enable squidtor.docker.service`
-`$ systemctl start squidtor.docker.service `
+Then run:
+```
+systemctl daemon-reload
+systemctl enable squidtor.docker.service
+systemctl start squidtor.docker.service
+```
 
 # Browsing
 
-Point the browser proxy configuration to yourip:3400
+Configure your web browser to use as proxy yourip:3400
 
 or test it with:
-
-`$ curl -x 127.0.0.1:3400 wtfismyip.com/json`
-
 ```
+curl -x 127.0.0.1:3400 wtfismyip.com/json
+
 {
    "YourFuckingIPAddress": "46.101.139.248",
    "YourFuckingLocation": "Frankfurt, 05, Germany",
@@ -116,7 +115,7 @@ or test it with:
 
 # Into the Configuration
 
-Following a breakthrough of the configuration adopted for the deployment of the this docker container :
+Following a breakthrough of the configuration adopted for the deployment of the this docker container:
 
 ## Control Admin Files
 
@@ -188,8 +187,8 @@ $PATH in /opt/dgroot/bin/ - command line to link 1-to-1 to respective tor node. 
 
 ## Monit
 
-*Config File:* `/etc/monit/monitrc`
-*Control Files:* `/etc/monit/conf-enabled`
+*Config File*: `/etc/monit/monitrc`
+*Control Files*: `/etc/monit/conf-enabled`
 
-here lies the monitoring of the above infrastructure as if a node dies, would be tedious the debugging process to find the dead node and start it up again.
-also monitors size of the caching directories for squid and delegate and if > 100mb removes them and recreates and restart the processes.
+Here lies the monitoring of the above infrastructure as if a node dies, would be tedious the debugging process to find the dead node and start it up again.
+It also monitors the size of the caching directories for squid and delegate and if > 100mb removes them and recreates and restart the processes.
