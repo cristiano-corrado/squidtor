@@ -1,0 +1,227 @@
+#!/bin/bash
+#set -x
+
+# Startup script of the infrastructure
+# for info or bugs please contact cristiano.corrado@gmail.com
+# Thanks to Bernardo Damele @inquisb fot testing and debugging
+
+#### TODO further check on nets and adding automatically new nets ####
+#valid_cidr() {
+#    local  ip=$1
+#    local  stat=1
+#
+#    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}$ ]]; then
+#        OIFS=$IFS
+#        IFS='.'
+#        ip=($ip)
+#        IFS=$OIFS
+#        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+#        stat=$?
+#    fi
+#    return $stat
+#}
+
+
+#firstrun() {
+#	touch /etc/nofirstrun
+#	ip=`ip addr show eth0 | grep inet  | cut -d  "/" -f 1 | awk '{print $2}'`
+#	cidr=`ip addr show eth0 | grep inet  | cut -d  "/" -f 2 | awk '{print $1}'`
+#
+#	if valid_cidr	$ip; then
+#			echo "ok"
+#			sed -i '6i acl net_1 src'\ $ip'/'$cidr /etc/squid/squid.conf
+#			sed -i '26i http_access allow net_1' /etc/squid/squid.conf
+#	fi
+#}
+##############################################################################
+
+
+DELEGATED="/opt/dgroot/"
+SQUIDCACHEDIR="/var/cache/squid/"
+
+squidlauncher() {
+
+	if [ "$(ls -A $SQUIDCACHEDIR)" ];then
+		echo "$SQUIDCACHEDIR Full, starting the daemon."
+		sleep 1
+	else
+		echo "$SQUIDCACHEDIR empty, creating it."
+		squid -z &>/dev/null
+	fi
+	sleep 10
+	squid -f /etc/squid/squid.conf &> /dev/null
+	SQUIDPROCS=`pgrep squid | while read line; do echo -ne $line" ";done`
+	echo -e "Squid launched with processes: $SQUIDPROCS [ok]"
+}
+
+torlauncher(){
+	x=0
+	for i in /etc/tor/main-torrc.conf /etc/tor/torrc-child*.conf;do
+		bash -c "exec -a tor$x tor -f $i &> /dev/null"
+		x=$((x+1))
+	done
+	TORPROCS=`pgrep tor | while read line;do echo -ne $line" ";done`
+	echo -e "Tor launched with processes: $TORPROCS [ok]"
+
+}
+
+delegatedlauncher() {
+	for i in `seq 0 7`;do
+		export ADMIN="delegated-$i-session@`hostname`-$i"
+		bash -c "exec -a delegate812$i $DELEGATED/delegated -P127.0.0.1:812$i SERVER=http SOCKS=127.0.0.1:905$i &> /dev/null"
+	done
+	DELEGATEDPROCS=`pgrep delegate | while read line ; do echo -ne $line" ";done`
+	echo -e "Delegated Proxy/Socks Forwarder launched with processes $DELEGATEDPROCS [ok]"
+}
+
+squidstopper() {
+
+	SQUIDPROCS=`pgrep squid`
+	if [ -z "$SQUIDPROCS" ];then
+		echo "Squid not running"
+	else
+		for i in $SQUIDPROCS;do
+			kill -s KILL $i
+		done
+	echo Squid processes : `echo $SQUIDPROCS | while read line;do echo -ne $line" ";done` Killed +[ok]
+	fi
+}
+
+delegatedstopper() {
+	DELEGATEDPROCS=`pgrep delegate`
+	if [ -z "$DELEGATEDPROCS"  ];then
+		echo "Delegated is not running"
+	else
+		for i in $DELEGATEDPROCS ;do
+			kill -s KILL $i
+		done
+
+	echo -e Delegated processes : `echo $DELEGATEDPROCS | while read line ;do echo -ne $line" ";done` Killed +[ok]
+	fi
+}
+
+torstopper() {
+	TORPROCS=`pgrep tor`
+	if [ -z "$TORPROCS" ];then
+		echo "Tor is not running"
+	else
+		for i in $TORPROCS;do
+			kill -s KILL $i
+		done
+
+	echo -e Tor processes : `echo $TORPROCS | while read line ;do echo -ne $line" ";done` Killed +[ok]
+	fi
+}
+
+addhosts() {
+	for i in `seq 0 7`;do
+		echo 127.0.0.1 `hostname`$i >> /etc/hosts
+	done
+	echo "Added config to /etc/hosts for squid"
+}
+
+torPidStart() {
+	echo $3
+}
+
+
+checkChangeHostname() {
+	x=35
+	OLDHost=`cat /etc/squid/squid.conf | grep cache | head -1 | awk '{print $2}'`
+	if [ `hostname` != $OLDHost ]; then
+		echo "Hostname of the current machine was:" $OLDHost "Changing to new one: "`hostname`
+		sed '/cache_peer *./d' -i /etc/squid/squid.conf
+		for i in `seq 0 7`;do
+			x=$((x+1))
+			sed -i $x'i cache_peer '`hostname`$i' parent 812'$i' 0 round-robin default' /etc/squid/squid.conf
+		done
+	fi
+}
+
+case $1 in
+	start)
+
+		echo "Starting all Squidtor platform"
+		addhosts
+		checkChangeHostname
+		delegatedlauncher
+		torlauncher
+		squidlauncher
+		echo "Removing previous cached information from monit control centre"
+		if [ "$(ls -A $DIR)" ]; then
+			rm -rf /var/lib/monit/*
+		fi
+		service monit start
+		echo "Clearing Screen and tail squid logs to keep docker running..."
+		sleep 2
+		export TERM=linux
+		clear
+		tail -f /var/log/squid/access.squid-in.log
+
+		;;
+	stop)
+		echo "Stopping all Squidtor platform"
+		delegatedstopper
+		torstopper
+		squidstopper
+		service monit stop
+		;;
+
+	squid-stop)
+		squidstopper
+		;;
+	squid-start)
+		squidlauncher
+		;;
+	tor-stop)
+		torstopper
+		;;
+	tor-start)
+		torlauncher
+		;;
+	delegate-start)
+		delegatedlauncher
+		;;
+	delegate-stop)
+		delegatedstopper
+		;;
+	tor-[0-7]-start)
+			child=`echo $1 | awk -F - '{print $2}'`
+			if [ $child -ne 0 ];then
+				bash -c "exec -a tor$child tor -f /etc/tor/torrc-child-$child.conf &> /dev/null"
+			else
+				bash -c "exec -a tor$child tor -f /etc/tor/main-torrc.conf &> /dev/null"
+			fi
+		;;
+	delegate-[0-7]-start)
+			child=`echo $1 | awk -F - '{print $2}'`
+			export ADMIN="delegated-$child-session@`hostname`-$child"
+			bash -c "exec -a delegate812$child $DE $DELEGATED/delegated -P127.0.0.1:812$child SERVER=http SOCKS=127.0.0.1:905$child &> /dev/null"
+		;;
+	tor-[0-7]-stop)
+			child=`echo $1 | awk -F - '{print $2}'`
+			PROCKILL=`ps aux | grep tor$child | head -1 | awk '{print $2}'`
+			kill -s KILL $PROCKILL
+		;;
+	delegate-[0-7]-stop)
+			child=`echo $1 | awk -F - '{print $2}'`
+			PROCKILL=`ps aux | grep delegate812$child | head -1 | awk '{print $2}'`
+			kill -s KILL $PROCKILL
+		;;
+
+	*)
+		echo -e "\nUsage: $0\t	   start: start all the platform and services,
+			           stop : stop all the platform and services,
+				   squid-stop : stop the squid process,
+				   squid-start : start squid process,
+				   tor-stop : stop all the tor processes,
+				   tor-start : start all the tor processes,
+				   delegate-stop : stop all delegated processes,
+				   delegate-start : start all delegated processes,
+				   tor-[0-7]stop : stop single instance of tor process (eg: tor-1-stop)
+				   tor-[0-7]-start : start single instance of tor process (eg: tor-1-start)
+                                   delegate-[0-7]-stop : stop single instance of delegated process (eg: delegate-1-stop),
+				   delegate-[0-7]-start : start single instance of delegated process (eg: delegate-1-start)"
+		exit 1
+	 ;;
+esac

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+checksize() {
+	FOLDER_PATH=$1
+	REFERENCE_SIZE=$2
+	SIZE=$(/usr/bin/du -s $FOLDER_PATH  | /usr/bin/awk '{print $1}')
+	echo "$FOLDER_PATH  -  ${SIZE}kB"
+	if [[ $SIZE -gt $(( $REFERENCE_SIZE )) ]]; then 
+		exit 1
+	fi
+}
+
+removeSquidCache() {
+	/root/anonymize squid-stop
+	rm -rf /var/cache/squid/*
+	/root/anonymize squid-start
+}
+
+removeDelegateCache() {
+	/root/anonymize delegate-stop
+	rm -rf /var/spool/delegate-nobody/*
+	/root/anonymize delegate-start
+
+}
+
+case $1 in 
+	size)
+		checksize $2 $3
+	;;
+	remsquid)
+		removeSquidCache
+	;;
+	remdelegate)
+		removeDelegateCache
+	;;
+esac
+			

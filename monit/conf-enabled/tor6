@@ -1,0 +1,6 @@
+check process tor6 with pidfile /var/run/tor/tor6
+group debian-tor
+start program = "/root/anonymize tor-6-start"
+stop program = "/root/anonymize tor-6-stop"
+if 4 restarts within 20 cycles then timeout
+if failed host localhost port 9056 type tcp then restart 

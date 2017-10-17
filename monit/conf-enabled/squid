@@ -1,0 +1,6 @@
+check process squid with pidfile /var/run/squid/squid-in.pid
+group proxy
+start program = "/root/anonymize squid-start"
+stop program = "/root/anonymize squid-stop"
+if 4 restarts within 20 cycles then timeout
+if failed host localhost port 3400 type tcp then restart 

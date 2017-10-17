@@ -1,0 +1,3 @@
+check program delegateCheckCache
+        with path "/root/checksize size /var/spool/delegate-nobody/ 102400"
+  if status != 0 then exec "/root/checksize remdelegate"

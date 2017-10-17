@@ -1,0 +1,6 @@
+check process tor3 with pidfile /var/run/tor/tor3
+group debian-tor
+start program = "/root/anonymize tor-3-start"
+stop program = "/root/anonymize tor-3-stop"
+if 4 restarts within 20 cycles then timeout
+if failed host localhost port 9053 type tcp then restart 

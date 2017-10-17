@@ -1,0 +1,3 @@
+check program squidCheckCache
+	with path "/root/checksize size /var/cache/squid/ 102400"
+  if status != 0 then exec "/root/checksize remsquid"

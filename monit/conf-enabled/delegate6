@@ -1,0 +1,6 @@
+check process delegated8126 with pidfile /var/spool/delegate-nobody/act/pid/8126
+group proxy
+start program = "/root/anonymize delegate-6-start"
+stop program = "/root/anonymize delegate-6-stop"
+if 4 restarts within 20 cycles then timeout
+if failed host localhost port 8126 type tcp then restart

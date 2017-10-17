@@ -1,0 +1,6 @@
+check process tor1 with pidfile /var/run/tor/tor1
+group debian-tor
+start program = "/root/anonymize tor-1-start"
+stop program = "/root/anonymize tor-1-stop"
+if 4 restarts within 20 cycles then timeout
+if failed host localhost port 9051 type tcp then restart 
