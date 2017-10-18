@@ -68,7 +68,9 @@ torlauncher(){
 delegatedlauncher() {
 	for i in `seq 0 7`;do
 		export ADMIN="delegated-$i-session@`hostname`-$i"
-		bash -c "exec -a delegate812$i $DELEGATED/delegated -P127.0.0.1:812$i SERVER=http SOCKS=127.0.0.1:905$i &> /dev/null"
+		export DYLIB="+,lib*.1.0.2"
+		export RES_WAIT=0
+		bash -c "exec -a delegate812$i $DELEGATED/delegated -P127.0.0.1:812$i SERVER=http SOCKS=127.0.0.1:905$i CACHE="no" &> /dev/null"
 	done
 	DELEGATEDPROCS=`pgrep delegate | while read line ; do echo -ne $line" ";done`
 	echo -e "Delegated Proxy/Socks Forwarder launched with processes $DELEGATEDPROCS [ok]"
@@ -117,7 +119,7 @@ addhosts() {
 	for i in `seq 0 7`;do
 		echo 127.0.0.1 `hostname`$i >> /etc/hosts
 	done
-	echo "Added config to /etc/hosts for squid"
+	echo "Added config "`hostname`" to /etc/hosts for squid peer_cache resolution"
 }
 
 torPidStart() {
@@ -126,36 +128,73 @@ torPidStart() {
 
 
 checkChangeHostname() {
-	x=35
+
 	OLDHost=`cat /etc/squid/squid.conf | grep cache | head -1 | awk '{print $2}'`
 	if [ `hostname` != $OLDHost ]; then
 		echo "Hostname of the current machine was:" $OLDHost "Changing to new one: "`hostname`
 		sed '/cache_peer *./d' -i /etc/squid/squid.conf
 		for i in `seq 0 7`;do
-			x=$((x+1))
-			sed -i $x'i cache_peer '`hostname`$i' parent 812'$i' 0 round-robin default' /etc/squid/squid.conf
+			sed -i '/script\ ###/a cache_peer '`hostname`$i' parent 812'$i' 0 round-robin default' /etc/squid/squid.conf
 		done
 	fi
 }
 
+
+checkARCH(){
+	ARCH=`uname -m`
+	if [ $ARCH == "x86_64" ]; then
+		mv /opt/dgroot/delegated-x64 /opt/dgroot/delegated
+		rm -f /opt/dgroot/{delegated-x86,delegate-arm-eabi5}
+	fi
+
+	if [ $ARCH == "i386" ] || [ $ARCH == "x86" ] || [ $ARCH == "i686" ];then
+		mv /opt/dgroot/delegated-x86 /opt/dgroot/delegated
+		rm -f /opt/dgroot/{delegate-arm-eabi5,delegated-x64}
+	fi
+
+	if [[ $ARCH =~ ^arm.* ]];then
+		mv /opt/dgroot/delegate-arm-eabi5 /opt/dgroot/delegated
+		rm -f /opt/dgroot/{delegated-x86,delegated-x64}
+	fi
+
+}
+
+checkDNS(){
+	echo nameserver 127.0.0.1 > /etc/resolv.conf
+
+}
+
 case $1 in
+	firstrun)
+		checkARCH
+	;;
 	start)
 
 		echo "Starting all Squidtor platform"
+		# Add custom hostname runtime based on the -h used in docker
 		addhosts
+		# Add DNS resolution over tor
+		checkDNS
+		# change dynamically the hostnames for peer_cache round-robin in squid.conf
 		checkChangeHostname
-		delegatedlauncher
+		# start tor cluster
 		torlauncher
+		# start delegated cluster
+		delegatedlauncher
+		# start main squid daemon
 		squidlauncher
 		echo "Removing previous cached information from monit control centre"
 		if [ "$(ls -A $DIR)" ]; then
 			rm -rf /var/lib/monit/*
 		fi
+		# start monit service
 		service monit start
 		echo "Clearing Screen and tail squid logs to keep docker running..."
 		sleep 2
+		# Select Terminal for clear
 		export TERM=linux
 		clear
+		# Don't die in docker
 		tail -f /var/log/squid/access.squid-in.log
 
 		;;
@@ -196,7 +235,7 @@ case $1 in
 	delegate-[0-7]-start)
 			child=`echo $1 | awk -F - '{print $2}'`
 			export ADMIN="delegated-$child-session@`hostname`-$child"
-			bash -c "exec -a delegate812$child $DE $DELEGATED/delegated -P127.0.0.1:812$child SERVER=http SOCKS=127.0.0.1:905$child &> /dev/null"
+			bash -c "exec -a delegate812$child $DELEGATED/delegated -P127.0.0.1:812$child SERVER=http SOCKS=127.0.0.1:905$child CACHE="no" &> /dev/null"
 		;;
 	tor-[0-7]-stop)
 			child=`echo $1 | awk -F - '{print $2}'`
