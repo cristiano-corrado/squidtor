@@ -1,4 +1,4 @@
-check process delegated8121 with pidfile /var/spool/delegate-nobody/act/pid/8121
+check process delegated8121 with pidfile"/var/spool/delegate-nobody/act/pid/127.0.0.1:8121"
 group proxy
 start program = "/root/anonymize delegate-1-start"
 stop program = "/root/anonymize delegate-1-stop"
