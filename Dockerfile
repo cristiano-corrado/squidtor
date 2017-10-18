@@ -23,7 +23,7 @@ MAINTAINER SquidTor Version: 0.9 cristiano.corrado@gmail.com
 EXPOSE 3400
 RUN apt-get update
 RUN apt-get -y dist-upgrade
-RUN apt-get -y install  --no-install-recommends squid tor monit procps
+RUN apt-get -y install --no-install-recommends squid tor monit procps libssl1.0-dev
 
 # Set entry dir
 WORKDIR /root/
@@ -47,11 +47,20 @@ RUN chown proxy:proxy -R /var/run/squid /var/cache/squid
 RUN chown debian-tor:debian-tor -R /var/cache/tor/ /var/run/tor
 
 # Copy delegated binary to path
-COPY delegated-x64 /opt/dgroot/delegated
+ADD delegated-bins /opt/dgroot/
 
 # Making binaries executable
 # 700 Thanks to inquisb
-RUN chmod 700 /root/anonymize /root/checksize /opt/dgroot/delegated
+RUN chmod 700 /root/anonymize /root/checksize
 
+# This is to acknowledge the machine type and using the right binary for delegated
+RUN /root/anonymize firstrun
+
+# Set permission on delegated binary
+RUN chmod 700 /opt/dgroot/delegated
+
+# Use 127.0.0.1 TorDNS to resolve names
+RUN echo nameserver 127.0.0.1 > /etc/resolv.conf
+RUN ldconfig
 # Entry Command when lunching squidTor
 CMD /root/anonymize start
