@@ -6,9 +6,9 @@ pipeline {
         }
     }
     stages {
-        stage('Build') {
+        stage('TestProxy') {
             steps {
-                sh 'echo HELLO'
+                echo 'Hello HELLO'
             }
         }
     }
