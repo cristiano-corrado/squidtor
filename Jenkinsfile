@@ -13,9 +13,9 @@ pipeline {
         sh 'id'
       }
     }
-    stage('Run Security Scan') {
+    stage('Test Proxy') {
       steps {
-        sh '/usr/bin/python /home/urandom/nessrest.py'
+        sh 'which curl && curl -x 127.0.0.1:3400'
       }
     }
   }
