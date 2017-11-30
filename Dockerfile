@@ -18,7 +18,7 @@
 # or
 # curl -x 127.0.0.1:3400
 
-From debian:latest
+FROM debian:latest
 MAINTAINER SquidTor Version: 0.9 cristiano.corrado@gmail.com
 EXPOSE 3400
 RUN apt-get update
