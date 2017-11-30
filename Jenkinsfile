@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'apt-get update && apt-get install curl && curl -x 127.0.0.1:3400 wtfismyip.com/json'
+                sh 'hostname && ifconfig'
             }
         }
     }
