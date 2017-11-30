@@ -1,3 +1,4 @@
+
 pipeline {
   agent none
    stages {
@@ -8,6 +9,9 @@ pipeline {
          args '--rm -h squidtor -p 3400:3400'
          
               }
+            steps {
+              sh 'id'
+            }
             }
           }
     
