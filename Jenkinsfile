@@ -15,7 +15,7 @@ pipeline {
       }
     
     }
-    stage {'Run Security Scan') {
+    stage('Run Security Scan') {
       steps {
          sh 'python /home/urandom/nessrest.py'
       }
