@@ -6,9 +6,9 @@ pipeline {
         }
     }
     stages {
-        stage('TestProxy') {
+        stage('Build') {
             steps {
-                echo 'Hello HELLO'
+                echo 'curl -x 127.0.0.1:3400 wtfismyip.com/json'
             }
         }
     }
