@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'curl -x 127.0.0.1:3400 wtfismyip.com/json'
+                sh 'curl -x 127.0.0.1:3400 wtfismyip.com/json'
             }
         }
     }
