@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'squidtor:latest' 
+            image 'urand0m/squidtor:latest' 
             args '-d --rm -h squidtor -p 3400:3400' 
         }
     }
