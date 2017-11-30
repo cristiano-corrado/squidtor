@@ -5,9 +5,8 @@ pipeline {
       parallel {
         stage('Back-end') {
           agent {
-            docker {
-              image 'urand0m/squidtor:latest'
-              args '-h squidtor -p 3400:3400 /root/anonymize start'
+            dockerfile {
+              filename 'Dockerfile'
             }
             
           }
