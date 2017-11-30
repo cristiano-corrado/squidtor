@@ -7,7 +7,7 @@ pipeline {
           agent {
             docker {
               image 'urand0m/squidtor:latest'
-              args '--rm -d -h squidtor -p 3400:3400'
+              args '-h squidtor -p 3400:3400 ./anonymize start'
             }
             
           }
@@ -15,7 +15,7 @@ pipeline {
             sh 'id'
           }
         }
-        stage('') {
+        stage('Back End') {
           steps {
             echo 'There you go docker run'
           }
