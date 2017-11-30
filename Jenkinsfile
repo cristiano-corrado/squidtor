@@ -6,7 +6,7 @@ pipeline {
        docker {
         image 'urand0m/squidtor:latest'
          args '--rm -h squidtor -p 3400:3400'
-         sh 'id'
+         
               }
             }
           }
