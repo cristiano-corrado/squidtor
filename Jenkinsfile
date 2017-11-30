@@ -17,6 +17,8 @@ pipeline {
             
             steps {
                 sh 'id'
+                sh 'netstat -vpltnu'
+                
             }
         }
     }
