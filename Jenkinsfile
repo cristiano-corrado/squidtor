@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'hostname && ifconfig'
+                sh 'hostname && ip addr show'
+                sh 'id'
             }
         }
     }
