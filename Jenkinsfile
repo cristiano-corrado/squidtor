@@ -11,8 +11,15 @@ pipeline {
       steps {
         sh 'hostname && ip addr show'
         sh 'id'
-        sh 'python /home/urandom/nessrest.py'
+       
       }
+    
     }
+    stage {'Run Security Scan') {
+      steps {
+         sh 'python /home/urandom/nessrest.py'
+      }
+    }    
   }
+
 }
