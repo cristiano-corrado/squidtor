@@ -22,8 +22,8 @@ FROM debian:bullseye
 LABEL maintainer=cristiano.corrado@gmail.com
 EXPOSE 3400
 RUN apt-get update
-RUN dpkg --add-architecture armhf
-RUN apt-get -y dist-upgrade
+# RUN dpkg --add-architecture armhf
+# RUN apt-get -y dist-upgrade
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         squid \
@@ -33,12 +33,14 @@ RUN apt-get update && \
         libssl-dev \
         qemu-user-static \
         qemu-system-arm \
-        libc6:armhf \
-        libstdc++6:armhf \
-        libgcc1:armhf && \
+        libc6 \
+        libstdc++6 \
+        libgcc1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
+# libc6:armhf \
+# libstdc++6:armhf \
+# libgcc1:armhf && \
 # Set entry dir
 WORKDIR /root/
 
@@ -49,6 +51,14 @@ COPY tor /etc/tor
 COPY anonymize /root/
 COPY checksize /root/
 
+#Creating cache dirs
+RUN mkdir /opt/dgroot/
+RUN mkdir /var/run/tor/
+RUN mkdir /var/cache/tor/
+RUN mkdir /var/cache/squid
+RUN mkdir /var/run/squid/
+
+#Set Permissions
 #Creating cache dirs
 RUN mkdir /opt/dgroot/
 RUN mkdir /var/run/tor/
