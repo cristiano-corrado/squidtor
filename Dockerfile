@@ -18,20 +18,34 @@
 # or
 # curl -x 127.0.0.1:3400
 
-FROM debian:latest
-MAINTAINER SquidTor Version: 0.9 cristiano.corrado@gmail.com
+FROM debian:bullseye
+LABEL maintainer=cristiano.corrado@gmail.com
 EXPOSE 3400
 RUN apt-get update
+RUN dpkg --add-architecture armhf
 RUN apt-get -y dist-upgrade
-RUN apt-get -y install --no-install-recommends squid tor monit procps libssl1.0-dev
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        squid \
+        tor \
+        monit \
+        procps \
+        libssl-dev \
+        qemu-user-static \
+        qemu-system-arm \
+        libc6:armhf \
+        libstdc++6:armhf \
+        libgcc1:armhf && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set entry dir
 WORKDIR /root/
 
 #Copy Configuration files
-ADD monit /etc/monit
-ADD squid /etc/squid
-ADD tor /etc/tor
+COPY monit /etc/monit
+COPY squid /etc/squid
+COPY tor /etc/tor
 COPY anonymize /root/
 COPY checksize /root/
 
@@ -57,10 +71,9 @@ RUN chmod 700 /root/anonymize /root/checksize
 RUN /root/anonymize firstrun
 
 # Set permission on delegated binary
-RUN chmod 700 /opt/dgroot/delegated
-
+# RUN chmod 700 /opt/dgroot/delegate-arm-eabi5
 # Use 127.0.0.1 TorDNS to resolve names
-RUN echo nameserver 127.0.0.1 > /etc/resolv.conf
+# RUN echo nameserver 127.0.0.1 > /etc/resolv.conf
 RUN ldconfig
 # Entry Command when lunching squidTor
-CMD /root/anonymize start
+CMD ["/root/anonymize", "start"]

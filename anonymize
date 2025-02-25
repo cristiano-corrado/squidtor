@@ -145,23 +145,28 @@ checkARCH(){
 	if [ $ARCH == "x86_64" ]; then
 		mv /opt/dgroot/delegated-x64 /opt/dgroot/delegated
 		rm -f /opt/dgroot/{delegated-x86,delegate-arm-eabi5}
+		chmod +x /opt/dgroot/delegated
+		echo "Identified Platform: $ARCH"
 	fi
 
 	if [ $ARCH == "i386" ] || [ $ARCH == "x86" ] || [ $ARCH == "i686" ];then
 		mv /opt/dgroot/delegated-x86 /opt/dgroot/delegated
 		rm -f /opt/dgroot/{delegate-arm-eabi5,delegated-x64}
+		chmod +x /opt/dgroot/delegated
+		echo "Identified Platform: $ARCH"
 	fi
 
-	if [[ $ARCH =~ ^arm.* ]];then
+	if [[ $ARCH =~ ^a.* ]];then
 		mv /opt/dgroot/delegate-arm-eabi5 /opt/dgroot/delegated
 		rm -f /opt/dgroot/{delegated-x86,delegated-x64}
+		chmod +x /opt/dgroot/delegated
+		echo "Identified Platform: $ARCH"
 	fi
 
 }
 
 checkDNS(){
 	echo nameserver 127.0.0.1 > /etc/resolv.conf
-
 }
 
 case $1 in
@@ -173,6 +178,8 @@ case $1 in
 		echo "Starting all Squidtor platform"
 		# Add custom hostname runtime based on the -h used in docker
 		addhosts
+		# Add correct binary for delegated
+		checkARCH
 		# Add DNS resolution over tor
 		checkDNS
 		# change dynamically the hostnames for peer_cache round-robin in squid.conf
@@ -189,9 +196,9 @@ case $1 in
 		fi
 		# start monit service
 		service monit start
-		echo "Clearing Screen and tail squid logs to keep docker running..."
+		# echo "Clearing Screen and tail squid logs to keep docker running..."
 		sleep 2
-		# Select Terminal for clear
+		# # Select Terminal for clear
 		export TERM=linux
 		clear
 		# Don't die in docker

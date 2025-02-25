@@ -67,7 +67,7 @@ The start/stop script file controls each and every instance of the whole archite
 git clone https://github.com/urand0m/squidtor.git
 cd squidtor
 docker image build -t squidtor .
-docker run -d -h squidtor -p 3400:3400 --rm --name squidtor urand0m/squidtor:latest
+docker run -d -h squidtor --dns=127.0.0.1 -p 3400:3400 --rm --name squidtor urand0m/squidtor:latest
 ```
 
 # Systemd
