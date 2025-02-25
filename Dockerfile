@@ -59,14 +59,6 @@ RUN mkdir /var/cache/squid
 RUN mkdir /var/run/squid/
 
 #Set Permissions
-#Creating cache dirs
-RUN mkdir /opt/dgroot/
-RUN mkdir /var/run/tor/
-RUN mkdir /var/cache/tor/
-RUN mkdir /var/cache/squid
-RUN mkdir /var/run/squid/
-
-#Set Permissions
 RUN chown proxy:proxy -R /var/run/squid /var/cache/squid
 RUN chown debian-tor:debian-tor -R /var/cache/tor/ /var/run/tor
 
