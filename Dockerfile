@@ -68,8 +68,6 @@ ADD delegated-bins /opt/dgroot/
 RUN chmod 700 /root/anonymize /root/checksize
 
 # This is to acknowledge the machine type and using the right binary for delegated
-RUN /root/anonymize firstrun
-
 # Set permission on delegated binary
 # RUN chmod 700 /opt/dgroot/delegate-arm-eabi5
 # Use 127.0.0.1 TorDNS to resolve names
